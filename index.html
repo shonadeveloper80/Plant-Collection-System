@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Botanica — Plant Collection</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,600&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --terra: #c4622d;
+  --terra-light: #e8896a;
+  --terra-pale: #f5ddd3;
+  --forest: #2d4a2d;
+  --forest-mid: #4a7a4a;
+  --forest-light: #7ab87a;
+  --forest-pale: #e8f0e8;
+  --cream: #faf6ef;
+  --parchment: #f0e8d8;
+  --parchment-dark: #e0d0b8;
+  --ink: #2a1f14;
+  --ink-mid: #5a4a38;
+  --ink-light: #8a7a68;
+  --gold: #c8993a;
+  --gold-light: #e8c878;
+  --blush: #e8b4a0;
+  --sage: #8aab8a;
+  --rust: #8b3a1a;
+  --white: #fffdf9;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* PAPER TEXTURE OVERLAY */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.6;
+}
+
+/* WATERCOLOR BLOBS */
+.blob {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.18;
+}
+.blob-1 { width: 600px; height: 500px; background: #c4622d; top: -200px; right: -200px; animation: drift1 20s ease-in-out infinite; }
+.blob-2 { width: 500px; height: 600px; background: #2d4a2d; bottom: -150px; left: -150px; animation: drift2 25s ease-in-out infinite; }
+.blob-3 { width: 300px; height: 300px; background: #c8993a; top: 40%; left: 30%; animation: drift3 18s ease-in-out infinite; }
+
+@keyframes drift1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-30px,40px) scale(1.08)} }
+@keyframes drift2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(40px,-30px) scale(1.05)} }
+@keyframes drift3 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(20px,30px) scale(1.1)} 66%{transform:translate(-20px,-10px) scale(0.95)} }
+
+.app-wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+/* ── HEADER ── */
+header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 52px;
+  padding-bottom: 28px;
+  border-bottom: 2px solid var(--parchment-dark);
+  position: relative;
+}
+
+header::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 120px;
+  height: 2px;
+  background: var(--terra);
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-leaf {
+  font-size: 42px;
+  line-height: 1;
+  margin-bottom: 4px;
+  animation: sway 4s ease-in-out infinite;
+  transform-origin: bottom center;
+  display: inline-block;
+}
+
+@keyframes sway { 0%,100%{transform:rotate(-3deg)} 50%{transform:rotate(3deg)} }
+
+.brand-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--forest);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.brand-name span { color: var(--terra); font-style: italic; }
+
+.brand-tagline {
+  font-family: 'Lora', serif;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--ink-light);
+  margin-top: 6px;
+  letter-spacing: 0.05em;
+}
+
+.header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.date-badge {
+  font-family: 'Lora', serif;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--ink-light);
+  background: var(--parchment);
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--parchment-dark);
+}
+
+.btn-add {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  background: var(--forest);
+  color: var(--cream);
+  border: none;
+  border-radius: 30px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: 0.02em;
+  box-shadow: 0 4px 20px #2d4a2d33;
+}
+
+.btn-add:hover {
+  background: var(--terra);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px #c4622d44;
+}
+
+.btn-add .plus {
+  width: 22px; height: 22px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 300;
+}
+
+/* ── STATS ROW ── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.stat-tile {
+  background: var(--white);
+  border: 1px solid var(--parchment-dark);
+  border-radius: 16px;
+  padding: 20px 22px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-tile::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 100%;
+  height: 3px;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s ease;
+}
+
+.stat-tile:hover { transform: translateY(-3px); box-shadow: 0 10px 30px #2d4a2d12; }
+.stat-tile:hover::before { transform: scaleX(1); }
+.stat-tile.t1::before { background: var(--forest); }
+.stat-tile.t2::before { background: var(--terra); }
+.stat-tile.t3::before { background: var(--gold); }
+.stat-tile.t4::before { background: var(--blush); }
+
+.stat-icon {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.t1 .stat-icon { background: var(--forest-pale); }
+.t2 .stat-icon { background: var(--terra-pale); }
+.t3 .stat-icon { background: #fdf3e0; }
+.t4 .stat-icon { background: #fde8e0; }
+
+.stat-info .num {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.stat-info .lbl {
+  font-size: 12px;
+  color: var(--ink-light);
+  margin-top: 3px;
+  letter-spacing: 0.03em;
+}
+
+/* ── MAIN LAYOUT ── */
+.main-layout {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 28px;
+  align-items: start;
+}
+
+/* ── PLANT GRID ── */
+.plants-section {}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--forest);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-title::before {
+  content: '';
+  width: 4px; height: 22px;
+  background: var(--terra);
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.filter-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1.5px solid var(--parchment-dark);
+  background: transparent;
+  color: var(--ink-mid);
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.2s;
+  letter-spacing: 0.02em;
+}
+
+.chip:hover { border-color: var(--forest); color: var(--forest); }
+.chip.active { background: var(--forest); color: var(--cream); border-color: var(--forest); }
+
+.plants-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+/* ── PLANT CARD ── */
+.plant-card {
+  background: var(--white);
+  border: 1px solid var(--parchment-dark);
+  border-radius: 20px;
+  overflow: hidden;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: default;
+  position: relative;
+  animation: cardRise 0.5s ease both;
+}
+
+@keyframes cardRise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+
+.plant-card:hover { transform: translateY(-6px) rotate(0.5deg); box-shadow: 0 20px 50px #2d4a2d18, 0 4px 12px #2d4a2d0c; }
+
+.card-top {
+  height: 130px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 72px;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-bg {
+  position: absolute;
+  inset: 0;
+  opacity: 0.12;
+}
+
+.card-emoji { position: relative; z-index: 1; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15)); transition: transform 0.3s; }
+.plant-card:hover .card-emoji { transform: scale(1.12) rotate(-5deg); }
+
+.health-dot {
+  position: absolute;
+  top: 12px; right: 12px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.8);
+  z-index: 2;
+}
+
+.health-dot.thriving { background: #4caf50; box-shadow: 0 0 8px #4caf5088; }
+.health-dot.ok { background: #ff9800; box-shadow: 0 0 8px #ff980088; }
+.health-dot.struggling { background: #f44336; box-shadow: 0 0 8px #f4433688; }
+.health-dot.dormant { background: #9e9e9e; }
+
+.card-body { padding: 16px 18px 18px; }
+
+.plant-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.plant-species {
+  font-family: 'Lora', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--ink-light);
+  margin-bottom: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--ink-mid);
+}
+
+.meta-icon { font-size: 13px; flex-shrink: 0; }
+
+.water-bar-wrap { flex: 1; }
+
+.water-bar {
+  height: 4px;
+  background: var(--parchment-dark);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.water-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--forest-mid), var(--forest-light));
+  transition: width 0.5s ease;
+}
+
+.card-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 14px; }
+
+.plant-tag {
+  padding: 3px 9px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.tag-indoor { background: var(--forest-pale); color: var(--forest); }
+.tag-outdoor { background: var(--terra-pale); color: var(--rust); }
+.tag-succulent { background: #fdf3e0; color: #8a5a00; }
+.tag-flowering { background: #fde8f0; color: #8a1a40; }
+.tag-tropical { background: #e0f0fd; color: #1a508a; }
+.tag-herb { background: #f0fde0; color: #3a8a1a; }
+.tag-cactus { background: #fdf3e0; color: #8a5a00; }
+.tag-fern { background: var(--forest-pale); color: var(--forest); }
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-card {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1.5px solid;
+  letter-spacing: 0.02em;
+}
+
+.btn-water {
+  background: var(--forest-pale);
+  color: var(--forest);
+  border-color: transparent;
+}
+.btn-water:hover { background: var(--forest); color: var(--cream); transform: scale(1.03); }
+
+.btn-edit-card {
+  background: transparent;
+  color: var(--ink-mid);
+  border-color: var(--parchment-dark);
+}
+.btn-edit-card:hover { border-color: var(--terra); color: var(--terra); }
+
+.btn-delete-card {
+  background: transparent;
+  color: var(--ink-light);
+  border-color: var(--parchment-dark);
+  flex: 0;
+  padding: 8px 10px;
+}
+.btn-delete-card:hover { background: #fde8e0; color: var(--rust); border-color: var(--blush); }
+
+/* ── EMPTY ── */
+.empty-plants {
+  grid-column: 1/-1;
+  text-align: center;
+  padding: 80px 30px;
+  display: none;
+}
+
+.empty-plants.show { display: block; }
+
+.empty-illustration { font-size: 80px; margin-bottom: 20px; animation: sway 4s ease-in-out infinite; display: inline-block; }
+
+.empty-plants h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  color: var(--forest);
+  margin-bottom: 8px;
+}
+
+.empty-plants p { color: var(--ink-light); font-size: 14px; font-family: 'Lora', serif; font-style: italic; }
+
+/* ── SIDEBAR ── */
+.sidebar { display: flex; flex-direction: column; gap: 22px; }
+
+/* FORM CARD */
+.form-card {
+  background: var(--white);
+  border: 1px solid var(--parchment-dark);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px #2d4a2d0a;
+}
+
+.form-card-header {
+  background: linear-gradient(135deg, var(--forest), #3a6040);
+  padding: 22px 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.form-card-header::before {
+  content: '🌿';
+  position: absolute;
+  right: -10px; bottom: -15px;
+  font-size: 80px;
+  opacity: 0.15;
+  transform: rotate(-20deg);
+}
+
+.form-card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--cream);
+  margin-bottom: 4px;
+}
+
+.form-card-sub {
+  font-family: 'Lora', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: rgba(250,246,239,0.7);
+}
+
+.form-body { padding: 22px 24px; }
+
+.field { margin-bottom: 18px; }
+
+.field-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-mid);
+  margin-bottom: 7px;
+}
+
+.field-label .req { color: var(--terra); }
+
+input[type=text], input[type=number], select, textarea {
+  width: 100%;
+  padding: 11px 14px;
+  background: var(--cream);
+  border: 1.5px solid var(--parchment-dark);
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+  transition: all 0.25s;
+  appearance: none;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--forest-mid);
+  background: var(--white);
+  box-shadow: 0 0 0 3px #4a7a4a18;
+}
+
+input::placeholder, textarea::placeholder { color: var(--ink-light); font-style: italic; }
+select option { background: #faf6ef; color: var(--ink); }
+textarea { resize: none; height: 72px; font-size: 13px; }
+
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* EMOJI PICKER */
+.emoji-picker {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+.emoji-opt {
+  width: 100%;
+  aspect-ratio: 1;
+  border: 1.5px solid var(--parchment-dark);
+  border-radius: 10px;
+  background: var(--cream);
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.emoji-opt:hover { border-color: var(--forest-mid); background: var(--forest-pale); transform: scale(1.1); }
+.emoji-opt.selected { border-color: var(--forest); background: var(--forest-pale); box-shadow: 0 0 0 2px var(--forest-pale); transform: scale(1.08); }
+
+/* HEALTH SELECTOR */
+.health-options { display: flex; gap: 8px; }
+
+.health-opt {
+  flex: 1;
+  padding: 8px 4px;
+  border: 1.5px solid var(--parchment-dark);
+  border-radius: 10px;
+  background: transparent;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  color: var(--ink-mid);
+  letter-spacing: 0.03em;
+}
+
+.health-opt:hover { border-color: var(--forest-mid); }
+.health-opt.selected { color: var(--white); border-color: transparent; }
+.health-opt[data-h="thriving"].selected { background: #4caf50; }
+.health-opt[data-h="ok"].selected { background: #ff9800; }
+.health-opt[data-h="struggling"].selected { background: #f44336; }
+.health-opt[data-h="dormant"].selected { background: #9e9e9e; }
+
+/* WATER SLIDER */
+.water-slider-wrap { display: flex; align-items: center; gap: 10px; }
+
+input[type=range] {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 4px;
+  background: var(--parchment-dark);
+  border-radius: 2px;
+  outline: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--forest);
+  cursor: pointer;
+  border: 3px solid var(--white);
+  box-shadow: 0 2px 8px #2d4a2d44;
+  transition: transform 0.2s;
+}
+
+input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+.water-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--forest);
+  min-width: 45px;
+  text-align: right;
+}
+
+/* TAGS MULTI */
+.tag-checkboxes { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.tag-cb {
+  display: none;
+}
+
+.tag-cb-label {
+  padding: 5px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: 1.5px solid var(--parchment-dark);
+  color: var(--ink-mid);
+  background: var(--cream);
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.tag-cb:checked + .tag-cb-label {
+  background: var(--forest);
+  color: var(--cream);
+  border-color: var(--forest);
+}
+
+.tag-cb-label:hover { border-color: var(--forest-mid); color: var(--forest); }
+
+/* SUBMIT BUTTON */
+.btn-save {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--terra), #d4732d);
+  color: var(--white);
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  font-weight: 700;
+  font-style: italic;
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: 0.02em;
+  margin-top: 6px;
+  box-shadow: 0 4px 20px #c4622d33;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-save::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.6s;
+}
+
+.btn-save:hover { transform: translateY(-2px); box-shadow: 0 8px 30px #c4622d55; }
+.btn-save:hover::before { left: 150%; }
+.btn-save:active { transform: translateY(0); }
+
+.btn-save.edit-mode { background: linear-gradient(135deg, var(--forest), var(--forest-mid)); box-shadow: 0 4px 20px #2d4a2d44; }
+.btn-cancel-edit { width: 100%; padding: 10px; margin-top: 8px; border: 1.5px solid var(--parchment-dark); border-radius: 10px; background: transparent; color: var(--ink-light); font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+.btn-cancel-edit:hover { border-color: var(--terra); color: var(--terra); }
+
+/* SIDEBAR TIPS */
+.tip-card {
+  background: linear-gradient(135deg, var(--forest-pale), #dff0df);
+  border: 1px solid #b8d8b8;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.tip-header {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--forest);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tip-item {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  align-items: flex-start;
+}
+
+.tip-item:last-child { margin-bottom: 0; }
+
+.tip-icon { font-size: 18px; flex-shrink: 0; margin-top: -1px; }
+
+.tip-text {
+  font-size: 12px;
+  color: var(--forest);
+  line-height: 1.5;
+  font-family: 'Lora', serif;
+  font-style: italic;
+}
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(42,31,20,0.55);
+  backdrop-filter: blur(6px);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.modal-overlay.show { opacity: 1; pointer-events: all; }
+
+.modal-box {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 32px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 30px 80px rgba(42,31,20,0.25);
+  transform: scale(0.92) translateY(16px);
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  position: relative;
+  overflow: hidden;
+}
+
+.modal-box::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--terra), var(--gold), var(--terra-light));
+}
+
+.modal-overlay.show .modal-box { transform: scale(1) translateY(0); }
+
+.modal-leaf { font-size: 48px; text-align: center; margin-bottom: 14px; display: block; }
+.modal-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--forest); text-align: center; margin-bottom: 8px; }
+.modal-desc { font-family: 'Lora', serif; font-style: italic; font-size: 13px; color: var(--ink-light); text-align: center; margin-bottom: 20px; line-height: 1.6; }
+
+.modal-plant-preview {
+  background: var(--forest-pale);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+  border: 1px solid #b8d8b8;
+}
+
+.modal-plant-preview .m-emoji { font-size: 36px; }
+.modal-plant-preview .m-info { flex: 1; }
+.modal-plant-preview .m-name { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 16px; color: var(--forest); }
+.modal-plant-preview .m-species { font-family: 'Lora', serif; font-style: italic; font-size: 12px; color: var(--ink-light); }
+
+.modal-btns { display: flex; gap: 10px; }
+
+.mbtn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1.5px solid;
+}
+
+.mbtn-cancel { background: transparent; border-color: var(--parchment-dark); color: var(--ink-mid); }
+.mbtn-cancel:hover { border-color: var(--ink-mid); }
+.mbtn-delete { background: #fde8e0; border-color: #f4b4a0; color: var(--rust); font-weight: 700; }
+.mbtn-delete:hover { background: var(--rust); color: var(--white); }
+
+/* ── TOAST ── */
+.toast-wrap {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.toast {
+  padding: 12px 22px;
+  border-radius: 30px;
+  font-family: 'Lora', serif;
+  font-style: italic;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 8px 30px rgba(42,31,20,0.2);
+  animation: toastPop 0.4s cubic-bezier(0.34,1.56,0.64,1), toastFade 0.4s ease 2.6s forwards;
+  white-space: nowrap;
+}
+
+.toast.ok { background: var(--forest); color: var(--cream); }
+.toast.warn { background: var(--terra); color: var(--white); }
+.toast.info { background: var(--parchment); color: var(--ink); border: 1px solid var(--parchment-dark); }
+
+@keyframes toastPop { from { transform: translateY(20px) scale(0.9); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+@keyframes toastFade { to { opacity: 0; transform: translateY(-10px); } }
+
+/* WATERED FLASH */
+@keyframes waterFlash { 0%,100%{background:var(--white)} 50%{background:#e0f8e0} }
+
+/* SEARCH */
+.search-box {
+  position: relative;
+  margin-bottom: 18px;
+}
+
+.search-box input {
+  padding-left: 38px;
+  background: var(--white);
+}
+
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 15px; pointer-events: none; }
+
+/* RESPONSIVE */
+@media (max-width: 880px) {
+  .main-layout { grid-template-columns: 1fr; }
+  .sidebar { order: -1; }
+  .stats-row { grid-template-columns: repeat(2,1fr); }
+}
+
+@media (max-width: 520px) {
+  .brand-name { font-size: 36px; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .plants-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
+<div class="app-wrap">
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand">
+      <span class="brand-leaf">🌿</span>
+      <div class="brand-name">Bo<span>tanica</span></div>
+      <div class="brand-tagline">your living collection, lovingly tracked</div>
+    </div>
+    <div class="header-right">
+      <div class="date-badge" id="today-date"></div>
+      <button class="btn-add" onclick="scrollToForm()">
+        <span class="plus">+</span> Add a Plant
+      </button>
+    </div>
+  </header>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-tile t1">
+      <div class="stat-icon">🪴</div>
+      <div class="stat-info">
+        <div class="num" id="s-total">0</div>
+        <div class="lbl">Total Plants</div>
+      </div>
+    </div>
+    <div class="stat-tile t2">
+      <div class="stat-icon">💧</div>
+      <div class="stat-info">
+        <div class="num" id="s-water">0</div>
+        <div class="lbl">Need Water</div>
+      </div>
+    </div>
+    <div class="stat-tile t3">
+      <div class="stat-icon">✨</div>
+      <div class="stat-info">
+        <div class="num" id="s-thriving">0</div>
+        <div class="lbl">Thriving</div>
+      </div>
+    </div>
+    <div class="stat-tile t4">
+      <div class="stat-icon">🌸</div>
+      <div class="stat-info">
+        <div class="num" id="s-flowering">0</div>
+        <div class="lbl">Flowering</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main-layout">
+
+    <!-- PLANTS SECTION -->
+    <div class="plants-section">
+      <div class="section-header">
+        <div class="section-title">My Garden</div>
+        <div class="filter-row">
+          <button class="chip active" onclick="setFilter('all',this)">All</button>
+          <button class="chip" onclick="setFilter('thriving',this)">Thriving</button>
+          <button class="chip" onclick="setFilter('flowering',this)">Flowering</button>
+          <button class="chip" onclick="setFilter('needs-water',this)">Needs Water</button>
+        </div>
+      </div>
+
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Search your plants…" id="search-input" oninput="renderPlants()">
+      </div>
+
+      <div class="plants-grid" id="plants-grid">
+        <div class="empty-plants show" id="empty-state">
+          <div class="empty-illustration">🌱</div>
+          <h3>Your garden awaits</h3>
+          <p>Add your first plant using the form — every great garden starts with one.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="form-anchor">
+
+      <!-- FORM -->
+      <div class="form-card">
+        <div class="form-card-header">
+          <div class="form-card-title" id="form-title">Plant a new entry</div>
+          <div class="form-card-sub" id="form-sub">Fill in the details below to add it to your collection.</div>
+        </div>
+        <div class="form-body">
+
+          <div class="field">
+            <label class="field-label">Choose an Icon</label>
+            <div class="emoji-picker" id="emoji-picker">
+              <!-- filled by JS -->
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">Plant Name <span class="req">*</span></label>
+            <input type="text" id="f-name" placeholder="e.g. Monstera Deliciosa" maxlength="40">
+          </div>
+
+          <div class="field">
+            <label class="field-label">Species / Variety</label>
+            <input type="text" id="f-species" placeholder="e.g. Monstera deliciosa" maxlength="50">
+          </div>
+
+          <div class="field-row">
+            <div class="field" style="margin-bottom:0">
+              <label class="field-label">Location</label>
+              <select id="f-location">
+                <option value="Indoor">Indoor</option>
+                <option value="Outdoor">Outdoor</option>
+                <option value="Balcony">Balcony</option>
+                <option value="Greenhouse">Greenhouse</option>
+                <option value="Window">Window</option>
+              </select>
+            </div>
+            <div class="field" style="margin-bottom:0">
+              <label class="field-label">Light</label>
+              <select id="f-light">
+                <option value="Full Sun">Full Sun</option>
+                <option value="Partial">Partial</option>
+                <option value="Shade">Shade</option>
+                <option value="Low Light">Low Light</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">Health Status <span class="req">*</span></label>
+            <div class="health-options">
+              <button class="health-opt selected" data-h="thriving" onclick="selectHealth(this)">🌿 Thriving</button>
+              <button class="health-opt" data-h="ok" onclick="selectHealth(this)">🌤 Ok</button>
+              <button class="health-opt" data-h="struggling" onclick="selectHealth(this)">⚠ Struggling</button>
+              <button class="health-opt" data-h="dormant" onclick="selectHealth(this)">💤 Dormant</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">Water Level <span style="color:var(--forest-mid);font-style:italic;font-size:10px">(how full is it?)</span></label>
+            <div class="water-slider-wrap">
+              <input type="range" id="f-water" min="0" max="100" value="70" oninput="document.getElementById('water-val').textContent=this.value+'%'">
+              <span class="water-label" id="water-val">70%</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">Tags</label>
+            <div class="tag-checkboxes">
+              <input type="checkbox" class="tag-cb" id="t-indoor" value="indoor"><label class="tag-cb-label" for="t-indoor">Indoor</label>
+              <input type="checkbox" class="tag-cb" id="t-outdoor" value="outdoor"><label class="tag-cb-label" for="t-outdoor">Outdoor</label>
+              <input type="checkbox" class="tag-cb" id="t-succulent" value="succulent"><label class="tag-cb-label" for="t-succulent">Succulent</label>
+              <input type="checkbox" class="tag-cb" id="t-flowering" value="flowering"><label class="tag-cb-label" for="t-flowering">Flowering</label>
+              <input type="checkbox" class="tag-cb" id="t-tropical" value="tropical"><label class="tag-cb-label" for="t-tropical">Tropical</label>
+              <input type="checkbox" class="tag-cb" id="t-herb" value="herb"><label class="tag-cb-label" for="t-herb">Herb</label>
+              <input type="checkbox" class="tag-cb" id="t-cactus" value="cactus"><label class="tag-cb-label" for="t-cactus">Cactus</label>
+              <input type="checkbox" class="tag-cb" id="t-fern" value="fern"><label class="tag-cb-label" for="t-fern">Fern</label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">Notes</label>
+            <textarea id="f-notes" placeholder="Care reminders, quirks, feelings…"></textarea>
+          </div>
+
+          <button class="btn-save" id="btn-save" onclick="handleSave()">
+            🌱 Add to Collection
+          </button>
+          <button class="btn-cancel-edit" id="btn-cancel" style="display:none" onclick="resetForm()">
+            ✕ Cancel Editing
+          </button>
+
+        </div>
+      </div>
+
+      <!-- TIPS -->
+      <div class="tip-card">
+        <div class="tip-header">🌻 Care Reminders</div>
+        <div class="tip-item"><div class="tip-icon">💧</div><div class="tip-text">Most houseplants prefer to dry out slightly between waterings — overwatering is the #1 killer.</div></div>
+        <div class="tip-item"><div class="tip-icon">☀️</div><div class="tip-text">Rotate plants every few weeks so all sides receive even light exposure.</div></div>
+        <div class="tip-item"><div class="tip-icon">🍃</div><div class="tip-text">Wipe leaves with a damp cloth monthly — dust blocks sunlight absorption.</div></div>
+        <div class="tip-item"><div class="tip-icon">🪴</div><div class="tip-text">Spring is repotting season — check roots each year and size up if crowded.</div></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal-overlay" id="del-modal">
+  <div class="modal-box">
+    <span class="modal-leaf">🍂</span>
+    <div class="modal-title">Remove this plant?</div>
+    <div class="modal-desc">This will permanently remove it from your collection. This cannot be undone.</div>
+    <div class="modal-plant-preview" id="modal-preview"></div>
+    <div class="modal-btns">
+      <button class="mbtn mbtn-cancel" onclick="closeModal()">Keep It</button>
+      <button class="mbtn mbtn-delete" onclick="confirmDelete()">Remove</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+const PLANT_DATA = [
+  { emoji:'🌿', name:'Monstera',           species:'Monstera deliciosa' },
+  { emoji:'🪴', name:'Pothos',             species:'Epipremnum aureum' },
+  { emoji:'🌵', name:'Saguaro Cactus',     species:'Carnegiea gigantea' },
+  { emoji:'🌸', name:'Cherry Blossom',     species:'Prunus serrulata' },
+  { emoji:'🌺', name:'Hibiscus',           species:'Hibiscus rosa-sinensis' },
+  { emoji:'🌻', name:'Sunflower',          species:'Helianthus annuus' },
+  { emoji:'🌹', name:'Rose',               species:'Rosa rubiginosa' },
+  { emoji:'🍀', name:'Clover',             species:'Trifolium repens' },
+  { emoji:'🌱', name:'Seedling',           species:'Plantula nova' },
+  { emoji:'🎋', name:'Lucky Bamboo',       species:'Dracaena sanderiana' },
+  { emoji:'🌾', name:'Wheat Grass',        species:'Triticum aestivum' },
+  { emoji:'🍁', name:'Japanese Maple',     species:'Acer palmatum' },
+  { emoji:'🌲', name:'Pine Tree',          species:'Pinus sylvestris' },
+  { emoji:'🌴', name:'Coconut Palm',       species:'Cocos nucifera' },
+  { emoji:'🪷', name:'Lotus',              species:'Nelumbo nucifera' },
+  { emoji:'🌼', name:'Daisy',              species:'Bellis perennis' },
+  { emoji:'🍄', name:'Mushroom',           species:'Amanita muscaria' },
+  { emoji:'🌙', name:'Moonflower',         species:'Ipomoea alba' },
+];
+const EMOJIS = PLANT_DATA.map(p => p.emoji);
+const TAG_CLASSES = { indoor:'tag-indoor', outdoor:'tag-outdoor', succulent:'tag-succulent', flowering:'tag-flowering', tropical:'tag-tropical', herb:'tag-herb', cactus:'tag-cactus', fern:'tag-fern' };
+const CARD_COLORS = {
+  thriving: ['#e8f5e0','#a5d6a7'],
+  ok: ['#fff8e0','#ffe082'],
+  struggling: ['#fde8e0','#ef9a9a'],
+  dormant: ['#f0f0f0','#bdbdbd']
+};
+
+let plants = JSON.parse(localStorage.getItem('botanica-plants') || '[]');
+let selectedEmoji = '🌿';
+let selectedHealth = 'thriving';
+let editId = null;
+let deleteId = null;
+let currentFilter = 'all';
+
+// DATE
+document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+
+// EMOJI PICKER
+function buildEmojiPicker() {
+  const picker = document.getElementById('emoji-picker');
+  picker.innerHTML = '';
+  PLANT_DATA.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'emoji-opt' + (p.emoji === selectedEmoji ? ' selected' : '');
+    btn.textContent = p.emoji;
+    btn.type = 'button';
+    btn.title = p.name;
+    btn.onclick = () => {
+      selectedEmoji = p.emoji;
+      document.getElementById('f-name').value = p.name;
+      document.getElementById('f-species').value = p.species;
+      buildEmojiPicker();
+    };
+    picker.appendChild(btn);
+  });
+}
+buildEmojiPicker();
+
+// HEALTH
+function selectHealth(btn) {
+  document.querySelectorAll('.health-opt').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedHealth = btn.dataset.h;
+}
+
+// FILTER
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderPlants();
+}
+
+// SAVE
+function handleSave() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { showToast('Give your plant a name first! 🌱', 'warn'); document.getElementById('f-name').focus(); return; }
+
+  const tags = [...document.querySelectorAll('.tag-cb:checked')].map(c => c.value);
+
+  const plant = {
+    id: editId || Date.now().toString(),
+    emoji: selectedEmoji,
+    name,
+    species: document.getElementById('f-species').value.trim(),
+    location: document.getElementById('f-location').value,
+    light: document.getElementById('f-light').value,
+    health: selectedHealth,
+    water: parseInt(document.getElementById('f-water').value),
+    tags,
+    notes: document.getElementById('f-notes').value.trim(),
+    lastWatered: editId ? (plants.find(p=>p.id===editId)?.lastWatered || Date.now()) : Date.now(),
+    createdAt: editId ? (plants.find(p=>p.id===editId)?.createdAt || Date.now()) : Date.now()
+  };
+
+  if (editId) {
+    const idx = plants.findIndex(p => p.id === editId);
+    if (idx !== -1) plants[idx] = plant;
+    showToast(`${name} has been updated 🌿`, 'ok');
+  } else {
+    plants.unshift(plant);
+    showToast(`Welcome to the garden, ${name}! 🌱`, 'ok');
+  }
+
+  save(); resetForm(); renderPlants(); updateStats();
+}
+
+// RENDER
+function renderPlants() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  let filtered = plants.filter(p => {
+    const matchSearch = !search || (p.name+p.species+p.notes).toLowerCase().includes(search);
+    if (currentFilter === 'all') return matchSearch;
+    if (currentFilter === 'thriving') return matchSearch && p.health === 'thriving';
+    if (currentFilter === 'flowering') return matchSearch && p.tags.includes('flowering');
+    if (currentFilter === 'needs-water') return matchSearch && p.water < 30;
+    return matchSearch;
+  });
+
+  const grid = document.getElementById('plants-grid');
+  const empty = document.getElementById('empty-state');
+  grid.innerHTML = '';
+
+  if (!filtered.length) {
+    empty.classList.add('show');
+    empty.querySelector('h3').textContent = search ? 'No plants found' : 'Your garden awaits';
+    empty.querySelector('p').textContent = search ? 'Try a different search term.' : 'Add your first plant using the form.';
+    grid.appendChild(empty);
+    return;
+  }
+
+  empty.classList.remove('show');
+  filtered.forEach((p, i) => {
+    const card = document.createElement('div');
+    card.className = 'plant-card';
+    card.dataset.id = p.id;
+    card.style.animationDelay = (i * 0.06) + 's';
+
+    const [c1, c2] = CARD_COLORS[p.health] || CARD_COLORS.ok;
+    const waterPct = p.water;
+    const daysAgo = Math.floor((Date.now() - p.lastWatered) / 86400000);
+
+    const tagsHTML = p.tags.map(t => `<span class="plant-tag ${TAG_CLASSES[t] || ''}">${t}</span>`).join('');
+
+    card.innerHTML = `
+      <div class="card-top" style="background:linear-gradient(135deg,${c1},${c2}22)">
+        <div class="card-bg" style="background:radial-gradient(circle at 30% 50%,${c2},transparent 70%)"></div>
+        <div class="card-emoji">${p.emoji}</div>
+        <div class="health-dot ${p.health}" title="${p.health}"></div>
+      </div>
+      <div class="card-body">
+        <div class="plant-name">${p.name}</div>
+        <div class="plant-species">${p.species || 'Species unknown'}</div>
+        <div class="card-meta">
+          <div class="meta-item"><span class="meta-icon">📍</span>${p.location} · ${p.light}</div>
+          <div class="meta-item">
+            <span class="meta-icon">💧</span>
+            <span style="font-size:11px;color:var(--ink-light);margin-right:4px">${daysAgo === 0 ? 'Today' : daysAgo + 'd ago'}</span>
+            <div class="water-bar-wrap">
+              <div class="water-bar"><div class="water-fill" style="width:${waterPct}%"></div></div>
+            </div>
+          </div>
+          ${p.notes ? `<div class="meta-item" style="font-style:italic;font-size:11px;color:var(--ink-light);font-family:'Lora',serif">"${p.notes.substring(0,55)}${p.notes.length>55?'…':''}"</div>` : ''}
+        </div>
+        ${tagsHTML ? `<div class="card-tags">${tagsHTML}</div>` : ''}
+        <div class="card-actions">
+          <button class="btn-card btn-water" data-action="water" data-id="${p.id}">💧 Water</button>
+          <button class="btn-card btn-edit-card" data-action="edit" data-id="${p.id}">Edit</button>
+          <button class="btn-card btn-delete-card" data-action="delete" data-id="${p.id}">🗑</button>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// EVENT DELEGATION
+document.getElementById('plants-grid').addEventListener('click', function(e) {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const id = btn.dataset.id;
+  const action = btn.dataset.action;
+  if (action === 'water') waterPlant(id, btn.closest('.plant-card'));
+  else if (action === 'edit') editPlant(id);
+  else if (action === 'delete') openDeleteModal(id);
+});
+
+// WATER
+function waterPlant(id, card) {
+  const p = plants.find(x => x.id === id);
+  if (!p) return;
+  p.water = 100;
+  p.lastWatered = Date.now();
+  save();
+  renderPlants();
+  updateStats();
+  showToast(`${p.name} has been watered! 💧`, 'info');
+}
+
+// EDIT
+function editPlant(id) {
+  const p = plants.find(x => x.id === id);
+  if (!p) return;
+  editId = id;
+
+  selectedEmoji = p.emoji;
+  selectedHealth = p.health;
+  buildEmojiPicker();
+  document.querySelectorAll('.health-opt').forEach(b => {
+    b.classList.toggle('selected', b.dataset.h === p.health);
+  });
+
+  document.getElementById('f-name').value = p.name;
+  document.getElementById('f-species').value = p.species || '';
+  document.getElementById('f-location').value = p.location;
+  document.getElementById('f-light').value = p.light;
+  document.getElementById('f-water').value = p.water;
+  document.getElementById('water-val').textContent = p.water + '%';
+  document.getElementById('f-notes').value = p.notes || '';
+
+  document.querySelectorAll('.tag-cb').forEach(cb => { cb.checked = p.tags.includes(cb.value); });
+
+  document.getElementById('form-title').textContent = 'Edit plant entry';
+  document.getElementById('form-sub').textContent = 'Update the details below.';
+  document.getElementById('btn-save').textContent = '🌿 Save Changes';
+  document.getElementById('btn-save').classList.add('edit-mode');
+  document.getElementById('btn-cancel').style.display = 'block';
+
+  document.getElementById('form-anchor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function resetForm() {
+  editId = null;
+  selectedEmoji = '🌿';
+  selectedHealth = 'thriving';
+  buildEmojiPicker();
+  document.querySelectorAll('.health-opt').forEach(b => b.classList.toggle('selected', b.dataset.h === 'thriving'));
+  ['f-name','f-species','f-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-location').value = 'Indoor';
+  document.getElementById('f-light').value = 'Partial';
+  document.getElementById('f-water').value = 70;
+  document.getElementById('water-val').textContent = '70%';
+  document.querySelectorAll('.tag-cb').forEach(cb => cb.checked = false);
+  document.getElementById('form-title').textContent = 'Plant a new entry';
+  document.getElementById('form-sub').textContent = 'Fill in the details below to add it to your collection.';
+  document.getElementById('btn-save').textContent = '🌱 Add to Collection';
+  document.getElementById('btn-save').classList.remove('edit-mode');
+  document.getElementById('btn-cancel').style.display = 'none';
+}
+
+// DELETE
+function openDeleteModal(id) {
+  deleteId = id;
+  const p = plants.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('modal-preview').innerHTML = `
+    <div class="m-emoji">${p.emoji}</div>
+    <div class="m-info">
+      <div class="m-name">${p.name}</div>
+      <div class="m-species">${p.species || 'Unknown species'}</div>
+    </div>
+  `;
+  const modal = document.getElementById('del-modal');
+  modal.style.opacity = '';
+  modal.style.pointerEvents = '';
+  modal.classList.add('show');
+}
+
+function confirmDelete() {
+  const p = plants.find(x => x.id === deleteId);
+  plants = plants.filter(x => x.id !== deleteId);
+  if (editId === deleteId) resetForm();
+  save(); renderPlants(); updateStats();
+  closeModal();
+  if (p) showToast(`${p.name} has been removed 🍂`, 'warn');
+}
+
+function closeModal() {
+  const modal = document.getElementById('del-modal');
+  modal.classList.remove('show');
+  modal.style.opacity = '0';
+  modal.style.pointerEvents = 'none';
+  deleteId = null;
+}
+
+document.getElementById('del-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// STATS
+function updateStats() {
+  document.getElementById('s-total').textContent = plants.length;
+  document.getElementById('s-water').textContent = plants.filter(p => p.water < 30).length;
+  document.getElementById('s-thriving').textContent = plants.filter(p => p.health === 'thriving').length;
+  document.getElementById('s-flowering').textContent = plants.filter(p => p.tags.includes('flowering')).length;
+}
+
+// SAVE
+function save() { localStorage.setItem('botanica-plants', JSON.stringify(plants)); }
+
+// TOAST
+function showToast(msg, type = 'info') {
+  const wrap = document.getElementById('toasts');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+function scrollToForm() {
+  document.getElementById('form-anchor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  setTimeout(() => document.getElementById('f-name').focus(), 600);
+}
+
+// SEED DATA (first visit)
+if (!localStorage.getItem('botanica-plants')) {
+  const seeds = [
+    { id:'1', emoji:'🌿', name:'Monstera', species:'Monstera deliciosa', location:'Indoor', light:'Partial', health:'thriving', water:75, tags:['indoor','tropical'], notes:'Growing a new leaf!', lastWatered: Date.now() - 86400000, createdAt: Date.now() - 30*86400000 },
+    { id:'2', emoji:'🌵', name:'Desert Rose', species:'Adenium obesum', location:'Window', light:'Full Sun', health:'ok', water:20, tags:['cactus','succulent'], notes:'Needs a good drink soon.', lastWatered: Date.now() - 10*86400000, createdAt: Date.now() - 60*86400000 },
+    { id:'3', emoji:'🌸', name:'Peace Lily', species:'Spathiphyllum wallisii', location:'Indoor', light:'Low Light', health:'thriving', water:85, tags:['indoor','flowering'], notes:'Bloomed last week — gorgeous!', lastWatered: Date.now() - 2*86400000, createdAt: Date.now() - 90*86400000 },
+    { id:'4', emoji:'🌺', name:'Bird of Paradise', species:'Strelitzia reginae', location:'Balcony', light:'Full Sun', health:'ok', water:60, tags:['tropical','outdoor'], notes:'', lastWatered: Date.now() - 4*86400000, createdAt: Date.now() - 45*86400000 },
+  ];
+  plants = seeds;
+  save();
+}
+
+renderPlants();
+updateStats();
+</script>
+</body>
+</html>
